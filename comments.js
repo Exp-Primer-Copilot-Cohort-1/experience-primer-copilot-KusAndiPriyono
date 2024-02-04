@@ -1,19 +1,34 @@
 // create web erver for comment
-// Importing express module 
-const express = require("express") 
-const app = express() 
+// 3. create server
+// 4. listen to port
+// 5. create routes
 
-// Handling GET / request 
-app.use("/", (req, res, next) => { 
-	res.send("This is the express server") 
-}) 
+// 3. create server
+const express = require('express');
+const app = express();
 
-// Handling GET /hello request 
-app.get("/hello", (req, res, next) => { 
-	res.send("This is the hello response"); 
-}) 
+// 5. create routes
+// 5.1 create get route
+app.get('/comments', (req, res) => {
+    res.send('GET request to the comments page');
+});
 
-// Server setup 
-app.listen(3000, () => { 
-	console.log("Server is Running") 
-}) 
+// 5.2 create post route
+app.post('/comments', (req, res) => {
+    res.send('POST request to the comments page');
+});
+
+// 5.3 create put route
+app.put('/comments', (req, res) => {
+    res.send('PUT request to the comments page');
+});
+
+// 5.4 create delete route
+app.delete('/comments', (req, res) => {
+    res.send('DELETE request to the comments page');
+});
+
+// 4. listen to port
+app.listen(3000, () => {
+    console.log('Server started on port 3000');
+});
