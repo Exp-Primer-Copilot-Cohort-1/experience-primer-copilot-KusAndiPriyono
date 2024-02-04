@@ -1,89 +1,71 @@
-// Create Web Server
-var express = require('express');
-var app = express();
-var bodyParser = require('body-parser');
-var comments = [];
-var commentsCount = 0;
+// Create Web Server for comments
+// Create and delete comments
+// Update comments
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+const express = require('express');
+const router = express.Router();
+const Comment = require('../models/comment');
+const User = require('../models/user');
+const auth = require('../middleware/auth');
 
-// Get all comments
-app.get('/comments', function(req, res){
-    res.json(comments);
-});
+// Create a comment
+router.post('/create', auth, async (req, res) => {
+    try {
+        // Check if the user exists
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).send({ error: 'User not found' });
+        }
 
-// Get comment by id
-app.get('/comments/:id', function(req, res){
-    var id = req.params.id;
-    var comment = comments[id];
-    if (comment){
-        res.json(comment);
-    } else {
-        res.status(404).end();
+        // Create a comment
+        const comment = new Comment({
+            ...req.body,
+            owner: req.user.id
+        });
+        await comment.save();
+        res.status(201).send(comment);
+    } catch (error) {
+        res.status(400).send({ error: error.message });
     }
 });
 
-// Create comment
-app.post('/comments', function(req, res){
-    var comment = req.body.comment;
-    comments.push(comment);
-    res.status(201).end();
+// Get comments for a post
+router.get('/post/:id', auth, async (req, res) => {
+    try {
+        const comments = await Comment.find({ post: req.params.id });
+        res.status(200).send(comments);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
 });
 
-// Update comment
-app.put('/comments/:id', function(req, res){
-    var id = req.params.id;
-    var comment = req.body.comment;
-    comments[id] = comment;
-    res.status(204).end();
+// Update a comment
+router.patch('/update/:id', auth, async (req, res) => {
+    try {
+        const comment = await Comment.findOne({ _id: req.params.id, owner: req.user.id });
+        if (!comment) {
+            return res.status(404).send({ error: 'Comment not found' });
+        }
+        comment.text = req.body.text;
+        await comment.save();
+        res.status(200).send(comment);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
 });
 
-// Delete comment
-app.delete('/comments/:id', function(req, res){
-    var id = req.params.id;
-    comments.splice(id, 1);
-    res.status(204).end();
+// Delete a comment
+router.delete('/delete/:id', auth, async (req, res) => {
+    try {
+        const comment = await Comment.findOne({ _id: req.params.id, owner: req.user.id });
+        if (!comment) {
+            return res.status(404).send({ error: 'Comment not found' });
+        }
+        await comment.remove();
+        res.status(200).send(comment);
+    } catch (error) {
+        res.status(500).send({ error: error.message });
+    }
 });
 
-app.listen(3000, function(){
-    console.log('Server is running on port 3000');
-});
-```
-### 3. Create a client to test the server
-```
-javascript
-// Path: comments_client.js
-// Create a client to test the server
-var request = require('request');
-
-// Get all comments
-request('http://localhost:3000/comments', function (error, response, body) {
-    console.log(body);
-});
-
-// Get comment by id
-request('http://localhost:3000/comments/0', function (error, response, body) {
-    console.log(body);
-});
-
-// Create comment
-request.post({
-    url: 'http://localhost:3000/comments',
-    json: { comment: 'This is a new comment' }
-}, function(error, response, body){
-    console.log(response.statusCode);
-});
-
-// Update comment
-request.put({
-    url: 'http://localhost:3000/comments/0',
-    json: { comment: 'This is an updated comment' }
-}, function(error, response, body){
-    console.log(response.statusCode);
-});
-
-// Delete comment
-request.delete('http://localhost:3000/comments/0', function (error, response, body) {
-    console.log(response.statusCode);
-});
+module.exports = router;
