@@ -10,3 +10,6 @@ router.get('/', commentController.getComments);
 router.post('/', commentController.addComment);
 router.delete('/:id', commentController.deleteComment);
 router.put('/:id', commentController.updateComment);
+
+// export module
+module.exports = router;
