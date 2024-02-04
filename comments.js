@@ -1,15 +1,19 @@
-// create webs erver for comment
+// create web erver for comment
+// Importing express module 
+const express = require("express") 
+const app = express() 
 
-// import modules
-const express = require('express');
-const router = express.Router();
-const commentController = require('../controllers/commentController');
+// Handling GET / request 
+app.use("/", (req, res, next) => { 
+	res.send("This is the express server") 
+}) 
 
-// handle request for comment
-router.get('/', commentController.getComments);
-router.post('/', commentController.addComment);
-router.delete('/:id', commentController.deleteComment);
-router.put('/:id', commentController.updateComment);
+// Handling GET /hello request 
+app.get("/hello", (req, res, next) => { 
+	res.send("This is the hello response"); 
+}) 
 
-// export module
-module.exports = router;
+// Server setup 
+app.listen(3000, () => { 
+	console.log("Server is Running") 
+}) 
